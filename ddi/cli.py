@@ -25,8 +25,8 @@ PROVIDER_CLASSES = {
     # 'azure': AzureProvider, # Future providers will be added here
 }
 
-@click.group()
-@click.option('--network-view', default='All', help='The Infoblox network view to operate on.')
+@click.group(invoke_without_command=True)
+@click.option('--network-view', default=None, help='The Infoblox network view to operate on.')
 @click.pass_context
 def main(ctx, network_view):
     """
@@ -45,21 +45,29 @@ def main(ctx, network_view):
     infoblox_config = config['infoblox']
     
     changes_made = False
-    if not infoblox_config.get('grid_master_ip') or infoblox_config.get('grid_master_ip') == 'YOUR_INFOBLOX_IP':
-        infoblox_config['grid_master_ip'] = click.prompt('Enter Infoblox Grid Master IP')
-        changes_made = True
+    
+    # Always check/prompt for credentials if we are in interactive mode (no subcommand)
+    # or if they are missing.
+    interactive_mode = ctx.invoked_subcommand is None
+    
+    if interactive_mode or not infoblox_config.get('grid_master_ip') or infoblox_config.get('grid_master_ip') == 'YOUR_INFOBLOX_IP':
+        if not infoblox_config.get('grid_master_ip') or infoblox_config.get('grid_master_ip') == 'YOUR_INFOBLOX_IP':
+             infoblox_config['grid_master_ip'] = click.prompt('Enter Infoblox Grid Master IP')
+             changes_made = True
     
     # Handle legacy 'username' key
     if 'username' in infoblox_config and not 'admin_name' in infoblox_config:
         infoblox_config['admin_name'] = infoblox_config.pop('username')
 
-    if not infoblox_config.get('admin_name') or infoblox_config.get('admin_name') == 'YOUR_INFOBLOX_USERNAME':
-        infoblox_config['admin_name'] = click.prompt('Enter Infoblox Admin Name')
-        infoblox_config['password'] = click.prompt('Enter Infoblox Password', hide_input=True)
-        changes_made = True
-    elif not infoblox_config.get('password') or infoblox_config.get('password') == 'YOUR_INFOBLOX_PASSWORD':
-        infoblox_config['password'] = click.prompt('Enter Infoblox Password', hide_input=True)
-        changes_made = True
+    if interactive_mode or not infoblox_config.get('admin_name') or infoblox_config.get('admin_name') == 'YOUR_INFOBLOX_USERNAME':
+        if not infoblox_config.get('admin_name') or infoblox_config.get('admin_name') == 'YOUR_INFOBLOX_USERNAME':
+            infoblox_config['admin_name'] = click.prompt('Enter Infoblox Admin Name')
+            changes_made = True
+            
+    if interactive_mode or not infoblox_config.get('password') or infoblox_config.get('password') == 'YOUR_INFOBLOX_PASSWORD':
+         if not infoblox_config.get('password') or infoblox_config.get('password') == 'YOUR_INFOBLOX_PASSWORD':
+            infoblox_config['password'] = click.prompt('Enter Infoblox Password', hide_input=True)
+            changes_made = True
 
     if changes_made:
         if click.confirm('Do you want to save these settings to config.json?'):
@@ -71,6 +79,39 @@ def main(ctx, network_view):
     password = infoblox_config['password']
     wapi_version = infoblox_config.get('wapi_version', '2.13.1')
 
+    # --- Network View Selection ---
+    if network_view is None:
+        if interactive_mode:
+            # Ask user if they want to select a view or use default 'All'
+            action = questionary.select(
+                "Select Network View?",
+                choices=['Default (All)', 'Select from Infoblox']
+            ).ask()
+            
+            if action == 'Select from Infoblox':
+                # Initialize temporary manager to fetch views
+                temp_manager = InfobloxManager(grid_master_ip, wapi_version, admin_name, password, 'All')
+                try:
+                    click.echo("Fetching network views from Infoblox...")
+                    views = temp_manager.get_network_views()
+                    if views:
+                        view_names = sorted([view['name'] for view in views])
+                        network_view = questionary.select(
+                            "Select the Infoblox Network View:",
+                            choices=view_names
+                        ).ask()
+                    else:
+                        click.echo("No network views found or error fetching them. Defaulting to 'All'.")
+                        network_view = 'All'
+                except Exception as e:
+                    logger.error(f"Error fetching network views: {e}")
+                    click.echo(f"Error fetching network views: {e}")
+                    network_view = 'All'
+            else:
+                network_view = 'All'
+        else:
+            network_view = 'All'
+
     ctx.obj = {
         'config': config,
         'infoblox_manager': InfobloxManager(grid_master_ip, wapi_version, admin_name, password, network_view),
@@ -80,6 +121,10 @@ def main(ctx, network_view):
     logger.info(f"Grid Master: {grid_master_ip}")
     if network_view != 'All':
         logger.info(f"Operating on Network View: {network_view}")
+
+    # If no subcommand is invoked, default to the menu
+    if interactive_mode:
+        ctx.invoke(menu)
 
 # --- Provider Commands ---
 
@@ -249,32 +294,8 @@ def menu(ctx):
     """Enter interactive, menu-driven mode."""
     
     infoblox_manager = ctx.obj['infoblox_manager']
+    network_view = ctx.obj['network_view']
     
-    # --- Network View Selection ---
-    try:
-        views = infoblox_manager.get_network_views()
-        view_names = [view['name'] for view in views] if views else []
-        
-        choices = ['All'] + sorted(view_names)
-        
-        network_view = questionary.select(
-            "Select the Infoblox Network View to operate on:",
-            choices=choices,
-            default='All'
-        ).ask()
-
-        if network_view is None: # User cancelled
-            return
-
-    except (KeyboardInterrupt, EOFError):
-        print("\nExiting interactive menu.")
-        return
-    except Exception as e:
-        logger.error(f"Could not fetch network views: {e}")
-        print("Defaulting to 'All'.")
-        network_view = 'All'
-
-
     path = []
     
     while True:
