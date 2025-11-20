@@ -50,22 +50,62 @@ def main(ctx, network_view):
     # or if they are missing.
     interactive_mode = ctx.invoked_subcommand is None
     
-    if interactive_mode or not infoblox_config.get('grid_master_ip') or infoblox_config.get('grid_master_ip') == 'YOUR_INFOBLOX_IP':
+    if interactive_mode:
+        # Always prompt with defaults from config
+        current_ip = infoblox_config.get('grid_master_ip')
+        if current_ip == 'YOUR_INFOBLOX_IP': current_ip = None
+        
+        new_ip = click.prompt('Enter Infoblox Grid Master IP', default=current_ip)
+        if new_ip != current_ip:
+            infoblox_config['grid_master_ip'] = new_ip
+            changes_made = True
+
+        # Handle legacy 'username' key
+        if 'username' in infoblox_config and not 'admin_name' in infoblox_config:
+            infoblox_config['admin_name'] = infoblox_config.pop('username')
+
+        current_admin = infoblox_config.get('admin_name')
+        if current_admin == 'YOUR_INFOBLOX_USERNAME': current_admin = None
+        
+        new_admin = click.prompt('Enter Infoblox Admin Name', default=current_admin)
+        if new_admin != current_admin:
+            infoblox_config['admin_name'] = new_admin
+            changes_made = True
+
+        # Password handling - don't show default password in clear text, but indicate it exists
+        current_password = infoblox_config.get('password')
+        if current_password == 'YOUR_INFOBLOX_PASSWORD': current_password = None
+        
+        password_prompt = 'Enter Infoblox Password'
+        if current_password:
+            password_prompt += ' [********]'
+        
+        # We can't easily use 'default' with hide_input because it would show the password.
+        # So we handle it manually.
+        new_password = click.prompt(password_prompt, hide_input=True, default='', show_default=False)
+        
+        if new_password:
+            infoblox_config['password'] = new_password
+            changes_made = True
+        elif not current_password and not new_password:
+             # User hit enter but no default exists
+             infoblox_config['password'] = click.prompt('Enter Infoblox Password', hide_input=True)
+             changes_made = True
+             
+    else:
+        # Non-interactive mode: only prompt if missing
         if not infoblox_config.get('grid_master_ip') or infoblox_config.get('grid_master_ip') == 'YOUR_INFOBLOX_IP':
              infoblox_config['grid_master_ip'] = click.prompt('Enter Infoblox Grid Master IP')
              changes_made = True
-    
-    # Handle legacy 'username' key
-    if 'username' in infoblox_config and not 'admin_name' in infoblox_config:
-        infoblox_config['admin_name'] = infoblox_config.pop('username')
+        
+        if 'username' in infoblox_config and not 'admin_name' in infoblox_config:
+            infoblox_config['admin_name'] = infoblox_config.pop('username')
 
-    if interactive_mode or not infoblox_config.get('admin_name') or infoblox_config.get('admin_name') == 'YOUR_INFOBLOX_USERNAME':
         if not infoblox_config.get('admin_name') or infoblox_config.get('admin_name') == 'YOUR_INFOBLOX_USERNAME':
             infoblox_config['admin_name'] = click.prompt('Enter Infoblox Admin Name')
             changes_made = True
             
-    if interactive_mode or not infoblox_config.get('password') or infoblox_config.get('password') == 'YOUR_INFOBLOX_PASSWORD':
-         if not infoblox_config.get('password') or infoblox_config.get('password') == 'YOUR_INFOBLOX_PASSWORD':
+        if not infoblox_config.get('password') or infoblox_config.get('password') == 'YOUR_INFOBLOX_PASSWORD':
             infoblox_config['password'] = click.prompt('Enter Infoblox Password', hide_input=True)
             changes_made = True
 
