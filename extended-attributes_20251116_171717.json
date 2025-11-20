@@ -1,0 +1,67 @@
+[
+    {
+        "aws_tag": "Accenture_ru",
+        "similar_infoblox_ea": "accenture_ru",
+        "similarity_score": 100
+    },
+    {
+        "aws_tag": "Cloudservice",
+        "similar_infoblox_ea": "cloudservice",
+        "similarity_score": 100
+    },
+    {
+        "aws_tag": "CreatedBy",
+        "similar_infoblox_ea": "createdby",
+        "similarity_score": 100
+    },
+    {
+        "aws_tag": "Createdby",
+        "similar_infoblox_ea": "createdby",
+        "similarity_score": 100
+    },
+    {
+        "aws_tag": "Description",
+        "similar_infoblox_ea": "description",
+        "similarity_score": 100
+    },
+    {
+        "aws_tag": "Domain",
+        "similar_infoblox_ea": "domain",
+        "similarity_score": 100
+    },
+    {
+        "aws_tag": "Dud",
+        "similar_infoblox_ea": "dud",
+        "similarity_score": 100
+    },
+    {
+        "aws_tag": "Lineage",
+        "similar_infoblox_ea": "lineage",
+        "similarity_score": 100
+    },
+    {
+        "aws_tag": "Requested_By",
+        "similar_infoblox_ea": "Requested_by",
+        "similarity_score": 100
+    },
+    {
+        "aws_tag": "environment",
+        "similar_infoblox_ea": "Environment",
+        "similarity_score": 100
+    },
+    {
+        "aws_tag": "name",
+        "similar_infoblox_ea": "Name",
+        "similarity_score": 100
+    },
+    {
+        "aws_tag": "owner",
+        "similar_infoblox_ea": "Owner",
+        "similarity_score": 100
+    },
+    {
+        "aws_tag": "project",
+        "similar_infoblox_ea": "Project",
+        "similarity_score": 100
+    }
+]

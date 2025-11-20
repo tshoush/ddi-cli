@@ -1,0 +1,12 @@
+{
+    "infoblox": {
+        "grid_master_ip": "YOUR_INFOBLOX_IP",
+        "wapi_version": "2.13.1",
+        "admin_name": "admin",
+        "password": "infoblox",
+        "network_view": "default"
+    },
+    "aws": {
+        "vpc_export_file": ""
+    }
+}
