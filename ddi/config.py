@@ -5,6 +5,10 @@ import shutil
 CONFIG_FILE = "config.json"
 CONFIG_EXAMPLE_FILE = "config.json.example"
 
+class ConfigurationError(Exception):
+    """Exception raised for configuration errors."""
+    pass
+
 def load_config():
     """Loads the configuration from config.json, creating it from example if not found."""
     if not path.exists(CONFIG_FILE):
@@ -12,17 +16,19 @@ def load_config():
             print(f"'{CONFIG_FILE}' not found. Creating it from '{CONFIG_EXAMPLE_FILE}'.")
             shutil.copy(CONFIG_EXAMPLE_FILE, CONFIG_FILE)
         else:
-            print(f"Error: Neither '{CONFIG_FILE}' nor '{CONFIG_EXAMPLE_FILE}' found.")
-            print("Please ensure 'config.json.example' exists in the project root.")
-            exit(1)
+            raise ConfigurationError(
+                f"Neither '{CONFIG_FILE}' nor '{CONFIG_EXAMPLE_FILE}' found.\n"
+                "Please ensure 'config.json.example' exists in the project root."
+            )
 
     with open(CONFIG_FILE, 'r') as f:
         try:
             config = json.load(f)
         except json.JSONDecodeError as e:
-            print(f"Error decoding JSON from '{CONFIG_FILE}': {e}")
-            print("Please check the syntax of your config.json file.")
-            exit(1)
+            raise ConfigurationError(
+                f"Error decoding JSON from '{CONFIG_FILE}': {e}\n"
+                "Please check the syntax of your config.json file."
+            )
     return config
 
 def get_config_value(config, key, default=None):

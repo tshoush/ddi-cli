@@ -3,7 +3,7 @@ import os
 import shutil
 from unittest.mock import patch
 import pytest
-from ddi.config import load_config, get_config_value, save_config
+from ddi.config import load_config, get_config_value, save_config, ConfigurationError
 
 @pytest.fixture
 def temp_config_dir(tmp_path):
@@ -35,10 +35,8 @@ def test_load_config_from_example(temp_config_dir):
 @patch('builtins.print')
 def test_load_config_no_files(mock_print, temp_config_dir):
     """Test load_config when no config files are present."""
-    with pytest.raises(SystemExit) as e:
+    with pytest.raises(ConfigurationError):
         load_config()
-    assert e.type == SystemExit
-    assert e.value.code == 1
 
 @patch('builtins.print')
 def test_load_config_invalid_json(mock_print, temp_config_dir):
@@ -46,10 +44,8 @@ def test_load_config_invalid_json(mock_print, temp_config_dir):
     with open("config.json", "w") as f:
         f.write("{'key': 'invalid_json'}")
     
-    with pytest.raises(SystemExit) as e:
+    with pytest.raises(ConfigurationError):
         load_config()
-    assert e.type == SystemExit
-    assert e.value.code == 1
 
 def test_get_config_value():
     """Test get_config_value with nested keys."""

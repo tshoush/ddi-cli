@@ -39,7 +39,12 @@ class AWSProvider(BaseProvider):
                     
                     if vpc_id and tags_str and tags_str != "[]":
                         try:
-                            tags_list = ast.literal_eval(tags_str)
+                            # Try JSON first, then fallback to literal_eval if needed
+                            try:
+                                tags_list = json.loads(tags_str)
+                            except json.JSONDecodeError:
+                                tags_list = ast.literal_eval(tags_str)
+
                             for tag in tags_list:
                                 tag_key = tag['Key']
                                 all_unique_aws_tags.add(tag_key)
@@ -47,7 +52,7 @@ class AWSProvider(BaseProvider):
                                     aws_tags_with_vpcs[tag_key] = []
                                 if vpc_id not in aws_tags_with_vpcs[tag_key]:
                                     aws_tags_with_vpcs[tag_key].append(vpc_id)
-                        except (ValueError, SyntaxError) as e:
+                        except (ValueError, SyntaxError, TypeError) as e:
                             click.echo(f"Warning: Could not parse Tags from row: {row}. Error: {e}", err=True)
             return aws_tags_with_vpcs, all_unique_aws_tags
         except FileNotFoundError:

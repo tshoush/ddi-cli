@@ -1,5 +1,5 @@
-click
-requests
-thefuzz
-python-Levenshtein
-questionary
+click==8.1.7
+requests==2.31.0
+thefuzz==0.22.1
+python-Levenshtein==0.25.0
+questionary==2.0.1

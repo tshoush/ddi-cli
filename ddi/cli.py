@@ -1,12 +1,23 @@
 import click
-import subprocess
 import sys
 import os
 import questionary
 import datetime
-from ddi.config import load_config, save_config
+import logging
+from ddi.config import load_config, save_config, ConfigurationError
 from ddi.infoblox import InfobloxManager
 from ddi.providers.aws import AWSProvider
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler("ddi-cli.log"),
+        logging.StreamHandler(sys.stdout)
+    ]
+)
+logger = logging.getLogger(__name__)
 
 # Provider mapping
 PROVIDER_CLASSES = {
@@ -21,7 +32,12 @@ def main(ctx, network_view):
     """
     A CLI tool to sync network data from cloud providers to Infoblox.
     """
-    config = load_config()
+    try:
+        config = load_config()
+    except ConfigurationError as e:
+        logger.error(f"Configuration Error: {e}")
+        click.echo(f"Error: {e}", err=True)
+        sys.exit(1)
     
     if 'infoblox' not in config:
         config['infoblox'] = {}
@@ -60,10 +76,10 @@ def main(ctx, network_view):
         'infoblox_manager': InfobloxManager(grid_master_ip, wapi_version, admin_name, password, network_view),
         'network_view': network_view
     }
-    click.echo("Configuration loaded successfully.")
-    click.echo(f"Grid Master: {grid_master_ip}")
+    logger.info("Configuration loaded successfully.")
+    logger.info(f"Grid Master: {grid_master_ip}")
     if network_view != 'All':
-        click.echo(f"Operating on Network View: {network_view}")
+        logger.info(f"Operating on Network View: {network_view}")
 
 # --- Provider Commands ---
 
@@ -254,14 +270,13 @@ def menu(ctx):
         print("\nExiting interactive menu.")
         return
     except Exception as e:
-        print(f"Could not fetch network views: {e}")
+        logger.error(f"Could not fetch network views: {e}")
         print("Defaulting to 'All'.")
         network_view = 'All'
 
 
     path = []
-    base_command = [sys.executable, "ddi-cli.py", "--network-view", network_view]
-
+    
     while True:
         try:
             commands = _display_menu(path, network_view)
@@ -295,22 +310,29 @@ def menu(ctx):
                 path.append(selected_name)
             else:
                 # This is an executable command
-                full_command_path = path + [selected_name]
-                final_command = base_command + full_command_path
+                # We need to invoke it directly using click's invoke mechanism
+                # But first we might need arguments
                 
-                # Check for arguments
                 params_to_prompt = [p for p in selected_cmd.params if isinstance(p, click.Argument)]
+                kwargs = {}
                 
                 try:
                     for param in params_to_prompt:
                         arg_val = input(f"Enter value for '{param.name}': ")
-                        final_command.append(arg_val)
+                        kwargs[param.name] = arg_val
                 except (KeyboardInterrupt, EOFError):
                     print("\nCommand cancelled.")
                     continue
 
-                print(f"\nExecuting: {' '.join(final_command)}\n")
-                subprocess.run(final_command)
+                print(f"\nExecuting: {selected_name}\n")
+                
+                # Invoke the command
+                try:
+                    ctx.invoke(selected_cmd, **kwargs)
+                except Exception as e:
+                    logger.error(f"Error executing command: {e}")
+                    print(f"Error: {e}")
+
                 input("\nPress Enter to return to the menu...")
 
         except (KeyboardInterrupt, EOFError):
