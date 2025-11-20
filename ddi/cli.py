@@ -441,6 +441,18 @@ def menu(ctx):
             
             if isinstance(selected_cmd, click.Group):
                 path.append(selected_name)
+                
+                # If we are entering a provider group, instantiate the provider
+                # and add it to the context, simulating what the group callback does.
+                if selected_name in PROVIDER_CLASSES:
+                    try:
+                        provider_class = PROVIDER_CLASSES[selected_name]
+                        ctx.obj['provider'] = provider_class(ctx.obj['config'])
+                    except Exception as e:
+                        logger.error(f"Error initializing provider '{selected_name}': {e}")
+                        print(f"Error initializing provider: {e}")
+                        path.pop() # Go back
+                        continue
             else:
                 # This is an executable command
                 # We need to invoke it directly using click's invoke mechanism
