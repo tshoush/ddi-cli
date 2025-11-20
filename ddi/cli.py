@@ -365,24 +365,39 @@ def _display_menu(path, network_view):
     
     view_str = f"[{network_view}]"
     breadcrumbs = " > ".join(['Home', view_str] + path)
-    print(f"{breadcrumbs}\n")
-
+    
     current_command = _get_command_from_path(path)
     
     if not isinstance(current_command, click.Group):
         print("Error: Not a valid menu level.")
         return None
 
-    print(f"{current_command.help or ''}\n")
-
     commands = sorted(current_command.commands.items())
     
+    # Calculate width based on breadcrumbs or fixed minimum
+    width = max(len(breadcrumbs) + 4, 50)
+    
+    print(f"\n+{'-' * width}+")
+    print(f"| {breadcrumbs:<{width-2}} |")
+    print(f"+{'-' * width}+")
+    print(f"|{' ' * width}|")
+
     for i, (name, cmd) in enumerate(commands, 1):
         help_text = cmd.get_short_help_str()
-        print(f"{i}. {name.capitalize()}\n   - {help_text}")
+        print(f"|  {i}. {name.capitalize():<{width-6}} |")
+        if help_text:
+            # Truncate help text if too long for simple display
+            max_help_len = width - 8
+            if len(help_text) > max_help_len:
+                help_text = help_text[:max_help_len-3] + "..."
+            print(f"|     - {help_text:<{width-9}} |")
+        print(f"|{' ' * width}|")
         
-    print("\n0. Back")
-    print("q. Quit")
+    print(f"|  0. Back{' ' * (width-10)} |")
+    print(f"|  q. Quit{' ' * (width-10)} |")
+    print(f"|{' ' * width}|")
+    print(f"+{'-' * width}+")
+    
     return commands
 
 @main.command()
