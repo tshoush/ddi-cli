@@ -25,6 +25,21 @@ PROVIDER_CLASSES = {
     # 'azure': AzureProvider, # Future providers will be added here
 }
 
+def prompt_numbered_list(title, options):
+    """
+    Displays a numbered list of options and prompts the user to select one.
+    Returns the selected option string.
+    """
+    click.echo(f"\n{title}")
+    for i, option in enumerate(options, 1):
+        click.echo(f"{i}. {option}")
+    
+    while True:
+        choice = click.prompt(f"Enter choice (1-{len(options)})", type=int)
+        if 1 <= choice <= len(options):
+            return options[choice - 1]
+        click.echo(f"Invalid choice. Please enter a number between 1 and {len(options)}.")
+
 @click.group(invoke_without_command=True)
 @click.option('--network-view', default=None, help='The Infoblox network view to operate on.')
 @click.pass_context
@@ -123,10 +138,10 @@ def main(ctx, network_view):
     if network_view is None:
         if interactive_mode:
             # Ask user if they want to select a view or use default 'All'
-            action = questionary.select(
+            action = prompt_numbered_list(
                 "Select Network View?",
-                choices=['Default (All)', 'Select from Infoblox']
-            ).ask()
+                ['Default (All)', 'Select from Infoblox']
+            )
             
             if action == 'Select from Infoblox':
                 # Initialize temporary manager to fetch views
@@ -136,10 +151,10 @@ def main(ctx, network_view):
                     views = temp_manager.get_network_views()
                     if views:
                         view_names = sorted([view['name'] for view in views])
-                        network_view = questionary.select(
+                        network_view = prompt_numbered_list(
                             "Select the Infoblox Network View:",
-                            choices=view_names
-                        ).ask()
+                            view_names
+                        )
                     else:
                         click.echo("No network views found or error fetching them. Defaulting to 'All'.")
                         network_view = 'All'
