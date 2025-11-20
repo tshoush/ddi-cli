@@ -29,9 +29,7 @@ ddi-cli/
 
 *   **Python 3.6+**: The tool requires Python version 3.6 or newer.
 
-### Installation & Virtual Environment
-
-The tool automatically manages its own Python virtual environment. You just need to run the `ddi-cli.py` script with your system's Python 3.6+ interpreter.
+### Installation
 
 1.  **Clone the repository:**
 
@@ -40,56 +38,69 @@ The tool automatically manages its own Python virtual environment. You just need
     cd ddi-cli
     ```
 
-2.  **Run the tool for the first time:**
+2.  **Run the setup script:**
 
-    Execute the `ddi-cli.py` script. It will prompt you to create a virtual environment and install dependencies.
+    The `setup.sh` script will create a virtual environment and install all dependencies.
 
     ```bash
-    python ddi-cli.py aws
+    ./setup.sh
     ```
-    *   You will be prompted for the location to create the virtual environment (default: `~/DDI-Apps/ddi-cli`). Press Enter to accept the default or provide a custom path.
-    *   The script will create the virtual environment and install all necessary dependencies from `requirements.txt`.
-    *   It will then relaunch itself within this new virtual environment.
+    *   You will be prompted to provide the path to your Python 3 executable (default: `python3`).
+    *   The script will create a `venv` directory and install requirements.
+
+3.  **Activate the environment:**
+
+    ```bash
+    source venv/bin/activate
+    ```
 
 ### Configuration
 
 The tool uses a `config.json` file to store your Infoblox and cloud provider settings. If `config.json` does not exist, it will be automatically created from `config.json.example` the first time you run the tool.
 
-1.  **Review and Edit your configuration:**
+You can edit `config.json` manually or use the interactive configuration dashboard when running the tool.
 
-    Open `config.json` (which will be created automatically if missing) in a text editor and fill in the details for your environment.
-
-    ```json
-    {
-        "infoblox": {
-            "grid_master_ip": "YOUR_INFOBLOX_IP",
-            "wapi_version": "2.13.1",
-            "username": "YOUR_INFOBLOX_USERNAME",
-            "password": "YOUR_INFOBLOX_PASSWORD",
-            "network_view": "default"
-        },
-        "aws": {
-            "vpc_export_file": "/path/to/your/aws_vpc_export.json"
-        }
+```json
+{
+    "infoblox": {
+        "grid_master_ip": "YOUR_INFOBLOX_IP",
+        "wapi_version": "2.13.1",
+        "admin_name": "YOUR_INFOBLOX_USERNAME",
+        "password": "YOUR_INFOBLOX_PASSWORD"
+    },
+    "aws": {
+        "vpc_export_file": "/path/to/your/aws_vpc_export.json"
     }
-    ```
-    *   **`grid_master_ip`**: The IP address of your Infoblox Grid Master.
-    *   **`username` / `password`**: Your Infoblox WAPI credentials. If these are missing, the tool will prompt you for them and offer to save them to `config.json`.
-    *   **`vpc_export_file`**: The full path to your AWS VPC export file. If you leave this empty, the tool will prompt you for the path when you run it.
+}
+```
 
 ## Usage
 
-The main entry point is `ddi-cli.py`. You can use it with different subcommands for each cloud provider.
+The main entry point is `ddi-cli.py`.
 
-### AWS
+### Interactive Mode (Recommended)
 
-To sync AWS VPC data, use the `aws` subcommand:
+Simply run the script without arguments to enter the interactive mode:
 
 ```bash
-python ddi-cli.py aws
+python ddi-cli.py
 ```
 
-The tool will then connect to your Infoblox grid and process the VPC export file.
+1.  **Configuration Dashboard**: You will be presented with a dashboard to view and update your Infoblox settings.
+2.  **Network View Selection**: You can choose to operate on a specific Network View (fetched from Infoblox) or the default 'All'.
+3.  **Main Menu**: Navigate through the available commands (Audit, AWS, Search, etc.) using the numbered menu.
+
+### Command Line Arguments
+
+You can also run specific commands directly:
+
+```bash
+# Sync AWS data
+python ddi-cli.py aws sync
+
+# Search for a resource
+python ddi-cli.py search "my-resource"
+```
 
 ## Development
 
