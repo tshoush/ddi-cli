@@ -40,6 +40,35 @@ def prompt_numbered_list(title, options):
             return options[choice - 1]
         click.echo(f"Invalid choice. Please enter a number between 1 and {len(options)}.")
 
+def display_config_dashboard(infoblox_config):
+    """Displays the configuration dashboard."""
+    os.system('cls' if os.name == 'nt' else 'clear')
+    
+    grid_master = infoblox_config.get('grid_master_ip', 'Not Set')
+    if grid_master == 'YOUR_INFOBLOX_IP': grid_master = 'Not Set'
+    
+    admin = infoblox_config.get('admin_name', 'Not Set')
+    if admin == 'YOUR_INFOBLOX_USERNAME': admin = 'Not Set'
+    
+    password = infoblox_config.get('password')
+    if password and password != 'YOUR_INFOBLOX_PASSWORD':
+        password_display = '********'
+    else:
+        password_display = 'Not Set'
+
+    print("\n+--------------------------------------------------+")
+    print("|           DDI CLI Configuration Setup            |")
+    print("+--------------------------------------------------+")
+    print("|                                                  |")
+    print(f"|  1. Grid Master IP:  {grid_master:<28} |")
+    print(f"|  2. Admin Name:      {admin:<28} |")
+    print(f"|  3. Password:        {password_display:<28} |")
+    print("|                                                  |")
+    print("|  4. Continue                                     |")
+    print("|  q. Quit                                         |")
+    print("|                                                  |")
+    print("+--------------------------------------------------+")
+
 @click.group(invoke_without_command=True)
 @click.option('--network-view', default=None, help='The Infoblox network view to operate on.')
 @click.pass_context
@@ -66,46 +95,59 @@ def main(ctx, network_view):
     interactive_mode = ctx.invoked_subcommand is None
     
     if interactive_mode:
-        # Always prompt with defaults from config
-        current_ip = infoblox_config.get('grid_master_ip')
-        if current_ip == 'YOUR_INFOBLOX_IP': current_ip = None
-        
-        new_ip = click.prompt('Enter Infoblox Grid Master IP', default=current_ip)
-        if new_ip != current_ip:
-            infoblox_config['grid_master_ip'] = new_ip
-            changes_made = True
-
-        # Handle legacy 'username' key
-        if 'username' in infoblox_config and not 'admin_name' in infoblox_config:
-            infoblox_config['admin_name'] = infoblox_config.pop('username')
-
-        current_admin = infoblox_config.get('admin_name')
-        if current_admin == 'YOUR_INFOBLOX_USERNAME': current_admin = None
-        
-        new_admin = click.prompt('Enter Infoblox Admin Name', default=current_admin)
-        if new_admin != current_admin:
-            infoblox_config['admin_name'] = new_admin
-            changes_made = True
-
-        # Password handling - don't show default password in clear text, but indicate it exists
-        current_password = infoblox_config.get('password')
-        if current_password == 'YOUR_INFOBLOX_PASSWORD': current_password = None
-        
-        password_prompt = 'Enter Infoblox Password'
-        if current_password:
-            password_prompt += ' [********]'
-        
-        # We can't easily use 'default' with hide_input because it would show the password.
-        # So we handle it manually.
-        new_password = click.prompt(password_prompt, hide_input=True, default='', show_default=False)
-        
-        if new_password:
-            infoblox_config['password'] = new_password
-            changes_made = True
-        elif not current_password and not new_password:
-             # User hit enter but no default exists
-             infoblox_config['password'] = click.prompt('Enter Infoblox Password', hide_input=True)
-             changes_made = True
+        while True:
+            display_config_dashboard(infoblox_config)
+            choice = click.prompt("Enter choice", default='4', show_default=False)
+            
+            if choice == '1':
+                current_ip = infoblox_config.get('grid_master_ip')
+                if current_ip == 'YOUR_INFOBLOX_IP': current_ip = None
+                new_ip = click.prompt('Enter Infoblox Grid Master IP', default=current_ip)
+                if new_ip != current_ip:
+                    infoblox_config['grid_master_ip'] = new_ip
+                    changes_made = True
+            
+            elif choice == '2':
+                # Handle legacy 'username' key if present
+                if 'username' in infoblox_config and not 'admin_name' in infoblox_config:
+                    infoblox_config['admin_name'] = infoblox_config.pop('username')
+                
+                current_admin = infoblox_config.get('admin_name')
+                if current_admin == 'YOUR_INFOBLOX_USERNAME': current_admin = None
+                new_admin = click.prompt('Enter Infoblox Admin Name', default=current_admin)
+                if new_admin != current_admin:
+                    infoblox_config['admin_name'] = new_admin
+                    changes_made = True
+            
+            elif choice == '3':
+                current_password = infoblox_config.get('password')
+                if current_password == 'YOUR_INFOBLOX_PASSWORD': current_password = None
+                
+                password_prompt = 'Enter Infoblox Password'
+                if current_password:
+                    password_prompt += ' [********]'
+                
+                new_password = click.prompt(password_prompt, hide_input=True, default='', show_default=False)
+                if new_password:
+                    infoblox_config['password'] = new_password
+                    changes_made = True
+            
+            elif choice == '4':
+                # Validate before continuing
+                gm = infoblox_config.get('grid_master_ip')
+                an = infoblox_config.get('admin_name')
+                pw = infoblox_config.get('password')
+                
+                if not gm or gm == 'YOUR_INFOBLOX_IP' or \
+                   not an or an == 'YOUR_INFOBLOX_USERNAME' or \
+                   not pw or pw == 'YOUR_INFOBLOX_PASSWORD':
+                    click.echo("Error: Missing required configuration. Please set all fields.")
+                    click.pause()
+                    continue
+                break
+            
+            elif choice.lower() == 'q':
+                sys.exit(0)
              
     else:
         # Non-interactive mode: only prompt if missing
