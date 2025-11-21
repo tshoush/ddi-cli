@@ -1,17 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DDI CLI Presentation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Open+Sans:wght@300;400;600&display=swap"
+        rel="stylesheet">
     <style>
+        :root {
+            --primary-blue: #0a192f;
+            --accent-gold: #D4AF37;
+            --text-white: #e6f1ff;
+            --text-muted: #8892b0;
+        }
+
         body {
             margin: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #1e1e1e;
-            color: #ffffff;
+            font-family: 'Open Sans', sans-serif;
+            background-color: var(--primary-blue);
+            background-image: url('luxury_background_1763675221825.png');
+            background-size: cover;
+            background-position: center;
+            background-blend-mode: overlay;
+            color: var(--text-white);
             overflow: hidden;
         }
+
         .slide {
             display: none;
             height: 100vh;
@@ -19,78 +37,140 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 2rem;
+            padding: 4rem;
             box-sizing: border-box;
             text-align: center;
-            animation: fadeIn 0.5s ease-in-out;
+            animation: fadeIn 0.8s cubic-bezier(0.22, 1, 0.36, 1);
         }
+
         .slide.active {
             display: flex;
         }
+
         h1 {
-            font-size: 4rem;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 4.5rem;
+            font-weight: 700;
             margin-bottom: 1rem;
-            color: #4dabf7;
+            color: var(--text-white);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
         }
+
         h2 {
+            font-family: 'Montserrat', sans-serif;
             font-size: 2.5rem;
-            color: #a5d8ff;
-            margin-bottom: 2rem;
+            font-weight: 300;
+            color: var(--accent-gold);
+            margin-bottom: 3rem;
+            border-bottom: 2px solid var(--accent-gold);
+            padding-bottom: 1rem;
+            display: inline-block;
         }
+
+        p {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            line-height: 1.6;
+        }
+
         ul {
             text-align: left;
-            font-size: 1.8rem;
-            line-height: 1.6;
-            max-width: 800px;
+            font-size: 1.6rem;
+            line-height: 1.8;
+            max-width: 900px;
+            list-style: none;
+            padding: 0;
         }
+
         li {
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
+            padding-left: 2rem;
+            position: relative;
         }
+
+        li::before {
+            content: "•";
+            color: var(--accent-gold);
+            font-weight: bold;
+            font-size: 2rem;
+            position: absolute;
+            left: 0;
+            top: -5px;
+        }
+
+        code {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace;
+            color: var(--accent-gold);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+        }
+
         .controls {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
+            bottom: 30px;
+            right: 30px;
             display: flex;
-            gap: 10px;
+            gap: 15px;
+            z-index: 100;
         }
+
         button {
-            background-color: #4dabf7;
-            border: none;
-            color: white;
-            padding: 10px 20px;
-            font-size: 1rem;
+            background-color: transparent;
+            border: 2px solid var(--accent-gold);
+            color: var(--accent-gold);
+            padding: 10px 25px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
             cursor: pointer;
-            border-radius: 5px;
-            transition: background-color 0.3s;
+            border-radius: 30px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
+
         button:hover {
-            background-color: #339af0;
+            background-color: var(--accent-gold);
+            color: var(--primary-blue);
         }
+
         button:disabled {
-            background-color: #868e96;
+            border-color: var(--text-muted);
+            color: var(--text-muted);
             cursor: not-allowed;
         }
+
         .progress {
             position: fixed;
             bottom: 0;
             left: 0;
-            height: 5px;
-            background-color: #4dabf7;
-            transition: width 0.3s;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-gold), #fbf5b7);
+            transition: width 0.5s ease;
+            box-shadow: 0 0 10px var(--accent-gold);
         }
-        code {
-            background-color: #343a40;
-            padding: 0.2rem 0.4rem;
-            border-radius: 4px;
-            font-family: 'Courier New', Courier, monospace;
-            color: #ffec99;
-        }
+
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+                filter: blur(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+                filter: blur(0);
+            }
         }
     </style>
 </head>
+
 <body>
 
     <div class="progress" id="progressBar"></div>
@@ -104,65 +184,85 @@
 
     <!-- Slide 2: Overview -->
     <div class="slide">
-        <h1>Overview</h1>
+        <h2>Overview</h2>
         <ul>
-            <li><strong>Automated Sync</strong>: Keep Infoblox up-to-date with cloud network changes.</li>
-            <li><strong>Extensible</strong>: Modular design allows adding new providers (Azure, GCP).</li>
-            <li><strong>Interactive</strong>: User-friendly menu system for easy navigation.</li>
-            <li><strong>Audit & Search</strong>: Tools to find and verify resources across platforms.</li>
+            <li><strong>Automated Sync</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Keep
+                    Infoblox up-to-date with cloud network changes.</span></li>
+            <li><strong>Extensible</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Modular design
+                    allows adding new providers (Azure, GCP).</span></li>
+            <li><strong>Interactive</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">User-friendly
+                    menu system for easy navigation.</span></li>
+            <li><strong>Audit & Search</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Tools to
+                    find and verify resources across platforms.</span></li>
         </ul>
     </div>
 
     <!-- Slide 3: Architecture -->
     <div class="slide">
-        <h1>Architecture</h1>
+        <h2>Architecture</h2>
         <ul>
-            <li><strong>CLI Layer</strong> (<code>ddi/cli.py</code>): Handles user interaction.</li>
-            <li><strong>Configuration</strong> (<code>ddi/config.py</code>): Manages settings.</li>
-            <li><strong>Core Logic</strong> (<code>ddi/infoblox.py</code>): Infoblox WAPI interactions.</li>
-            <li><strong>Providers</strong> (<code>ddi/providers/</code>): AWS implementation and base classes.</li>
+            <li><strong>CLI Layer</strong> <code>ddi/cli.py</code><br><span
+                    style="font-size: 0.8em; color: var(--text-muted);">Handles user interaction.</span></li>
+            <li><strong>Configuration</strong> <code>ddi/config.py</code><br><span
+                    style="font-size: 0.8em; color: var(--text-muted);">Manages settings.</span></li>
+            <li><strong>Core Logic</strong> <code>ddi/infoblox.py</code><br><span
+                    style="font-size: 0.8em; color: var(--text-muted);">Infoblox WAPI interactions.</span></li>
+            <li><strong>Providers</strong> <code>ddi/providers/</code><br><span
+                    style="font-size: 0.8em; color: var(--text-muted);">AWS implementation and base classes.</span></li>
         </ul>
     </div>
 
     <!-- Slide 4: Installation -->
     <div class="slide">
-        <h1>Installation & Setup</h1>
+        <h2>Installation & Setup</h2>
         <ul>
-            <li>1. Clone the Repository: <br><code>git clone ...</code></li>
-            <li>2. Run Setup: <br><code>./setup.sh</code></li>
-            <li>3. Activate Environment: <br><code>source venv/bin/activate</code></li>
+            <li>1. Clone the Repository<br><code>git clone ...</code></li>
+            <li>2. Run Setup<br><code>./setup.sh</code></li>
+            <li>3. Activate Environment<br><code>source venv/bin/activate</code></li>
         </ul>
     </div>
 
     <!-- Slide 5: Interactive Workflow -->
     <div class="slide">
-        <h1>Interactive Workflow</h1>
+        <h2>Interactive Workflow</h2>
         <ul>
-            <li><strong>Configuration Dashboard</strong>: Visual "box" UI for settings.</li>
-            <li><strong>Network View Selection</strong>: Dynamically fetches views from Infoblox.</li>
-            <li><strong>Main Menu</strong>: Easy navigation to Audit, Search, and AWS commands.</li>
+            <li><strong>Configuration Dashboard</strong><br><span
+                    style="font-size: 0.8em; color: var(--text-muted);">Visual "box" UI for settings.</span></li>
+            <li><strong>Network View Selection</strong><br><span
+                    style="font-size: 0.8em; color: var(--text-muted);">Dynamically fetches views from Infoblox.</span>
+            </li>
+            <li><strong>Main Menu</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Easy navigation
+                    to Audit, Search, and AWS commands.</span></li>
         </ul>
     </div>
 
     <!-- Slide 6: Key Commands -->
     <div class="slide">
-        <h1>Key Commands</h1>
+        <h2>Key Commands</h2>
         <ul>
-            <li><code>audit</code>: Scan all configured providers.</li>
-            <li><code>search &lt;term&gt;</code>: Find a resource across clouds.</li>
-            <li><code>aws sync</code>: Synchronize AWS VPC data.</li>
-            <li><code>aws attributes analyze</code>: Compare AWS tags with Infoblox EAs.</li>
+            <li><code>audit</code><br><span style="font-size: 0.8em; color: var(--text-muted);">Scan all configured
+                    providers.</span></li>
+            <li><code>search &lt;term&gt;</code><br><span style="font-size: 0.8em; color: var(--text-muted);">Find a
+                    resource across clouds.</span></li>
+            <li><code>aws sync</code><br><span style="font-size: 0.8em; color: var(--text-muted);">Synchronize AWS VPC
+                    data.</span></li>
+            <li><code>aws attributes analyze</code><br><span style="font-size: 0.8em; color: var(--text-muted);">Compare
+                    AWS tags with Infoblox EAs.</span></li>
         </ul>
     </div>
 
     <!-- Slide 7: Roadmap -->
     <div class="slide">
-        <h1>Future Roadmap</h1>
+        <h2>Future Roadmap</h2>
         <ul>
-            <li><strong>Azure Support</strong>: Microsoft Azure integration.</li>
-            <li><strong>GCP Support</strong>: Google Cloud Platform support.</li>
-            <li><strong>Automated Scheduling</strong>: Built-in cron/scheduler.</li>
-            <li><strong>Enhanced Reporting</strong>: HTML or PDF report generation.</li>
+            <li><strong>Azure Support</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Microsoft
+                    Azure integration.</span></li>
+            <li><strong>GCP Support</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Google Cloud
+                    Platform support.</span></li>
+            <li><strong>Automated Scheduling</strong><br><span
+                    style="font-size: 0.8em; color: var(--text-muted);">Built-in cron/scheduler.</span></li>
+            <li><strong>Enhanced Reporting</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">HTML or
+                    PDF report generation.</span></li>
         </ul>
     </div>
 
@@ -226,4 +326,5 @@
         showSlide(0);
     </script>
 </body>
+
 </html>

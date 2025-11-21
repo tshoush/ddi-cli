@@ -3,28 +3,62 @@ import collections.abc
 from pptx import Presentation
 from pptx.util import Inches, Pt
 from pptx.enum.text import PP_ALIGN
+from pptx.dml.color import RGBColor
 
 def create_presentation():
     prs = Presentation()
 
+    # Define Luxury Colors
+    BLUE_DARK = RGBColor(10, 25, 47)    # #0a192f
+    GOLD_ACCENT = RGBColor(212, 175, 55) # #D4AF37
+    WHITE_TEXT = RGBColor(230, 241, 255) # #e6f1ff
+
+    def style_slide_background(slide):
+        background = slide.background
+        fill = background.fill
+        fill.solid()
+        fill.fore_color.rgb = BLUE_DARK
+
+    def style_title(shape):
+        shape.text_frame.paragraphs[0].font.color.rgb = GOLD_ACCENT
+        shape.text_frame.paragraphs[0].font.bold = True
+        shape.text_frame.paragraphs[0].font.name = 'Arial'
+
+    def style_body(shape):
+        for paragraph in shape.text_frame.paragraphs:
+            paragraph.font.color.rgb = WHITE_TEXT
+            paragraph.font.name = 'Arial'
+            paragraph.font.size = Pt(20)
+
     # Title Slide
     slide_layout = prs.slide_layouts[0] # 0 is title
     slide = prs.slides.add_slide(slide_layout)
+    style_slide_background(slide)
+    
     title = slide.shapes.title
     subtitle = slide.placeholders[1]
     
     title.text = "DDI CLI Tool"
+    style_title(title)
+    title.text_frame.paragraphs[0].font.size = Pt(54)
+    
     subtitle.text = "Cloud to Infoblox Synchronization"
+    subtitle.text_frame.paragraphs[0].font.color.rgb = WHITE_TEXT
+    subtitle.text_frame.paragraphs[0].font.name = 'Arial'
 
     # Helper to add a bullet slide
     def add_bullet_slide(heading, bullet_points):
         slide_layout = prs.slide_layouts[1] # 1 is title + content
         slide = prs.slides.add_slide(slide_layout)
+        style_slide_background(slide)
+        
         shapes = slide.shapes
         title_shape = shapes.title
         body_shape = shapes.placeholders[1]
         
         title_shape.text = heading
+        style_title(title_shape)
+        
         tf = body_shape.text_frame
         
         for i, point in enumerate(bullet_points):
@@ -33,7 +67,10 @@ def create_presentation():
             else:
                 p = tf.add_paragraph()
             p.text = point
-            p.font.size = Pt(20)
+            p.font.color.rgb = WHITE_TEXT
+            p.font.name = 'Arial'
+            p.font.size = Pt(24)
+            p.space_after = Pt(14)
 
     # Overview
     add_bullet_slide("Overview", [
@@ -92,10 +129,16 @@ def create_presentation():
     # Thank You
     slide_layout = prs.slide_layouts[0]
     slide = prs.slides.add_slide(slide_layout)
+    style_slide_background(slide)
+    
     title = slide.shapes.title
     subtitle = slide.placeholders[1]
+    
     title.text = "Thank You!"
+    style_title(title)
+    
     subtitle.text = "Repository: https://github.com/tshoush/ddi-cli"
+    subtitle.text_frame.paragraphs[0].font.color.rgb = WHITE_TEXT
 
     prs.save('DDI_CLI_Presentation.pptx')
     print("Presentation saved to DDI_CLI_Presentation.pptx")
